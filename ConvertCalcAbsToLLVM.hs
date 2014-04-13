@@ -46,16 +46,18 @@ promoteNumType _ _ = FloatingPointType 64 IEEE
 
 getBinOpInstruction :: Exp -> Type -> Operand -> Operand -> InstructionMetadata -> Instruction
 getBinOpInstruction (EAdd _ _) (isHighestRankNumT -> True) = FAdd
-getBinOpInstruction x@(EAdd _ _) _ = trace ("exp1=" ++ show x ++ "\n") $ Add False False
+getBinOpInstruction x@(EAdd _ _) _ = trace ("trace1=" ++ show x ++ "\n") $ Add False False
 
 getBinOpInstruction (ESub _ _) (isHighestRankNumT -> True) = FSub
-getBinOpInstruction x@(ESub _ _) _ = trace ("exp2=" ++ show x ++ "\n") $ Sub False False
+getBinOpInstruction x@(ESub _ _) _ = trace ("trace2=" ++ show x ++ "\n") $ Sub False False
 
 getBinOpInstruction (EMul _ _) (isHighestRankNumT -> True) = FMul
-getBinOpInstruction x@(EMul _ _) _ = trace ("exp3=" ++ show x ++ "\n") $ Mul False False
+getBinOpInstruction x@(EMul _ _) _ = trace ("trace3=" ++ show x ++ "\n") $ Mul False False
 
 getBinOpInstruction (EDiv _ _) _ = FDiv
-getBinOpInstruction x _  = trace ("exp4=" ++ show x ++ "\n") $ FAdd -- False False
+getBinOpInstruction x@(isHighestRankNumT . getNumT -> True) _  = trace ("trace4=" ++ show x ++ "\n")  FAdd 
+getBinOpInstruction x (isHighestRankNumT -> True)  = trace ("trace5=" ++ show x ++ "\n")  FAdd 
+getBinOpInstruction x _                            = trace ("trace6=" ++ show x ++ "\n") $ Add  False False
 
 meta0 :: [a]
 meta0 = []
@@ -73,6 +75,7 @@ getParms ex ty = nub $ getParms_ ex ty
         getParms_ (EDiv arg1 arg2) _    = binOpParams arg1 arg2 highestRankNumT
         getParms_ (EVar (Ident x)) numT = [Parameter numT (Name x) []]
         getParms_ (EInt _) _= []
+
 
 getInsts :: Name -> Word -> Exp -> [Named Instruction]
 ----------- EAdd
@@ -338,9 +341,9 @@ getModule exps = defaultModule { moduleName = "Calc Module", moduleDefinitions =
                         G.returnType = numT,
                         G.name = Name "func_name",
                         G.parameters = (getParms ex numT, False),
-                        G.basicBlocks = [ BasicBlock (Name "my_add") 
-                                                  (getInsts (Name "retval") 0 ex)
-                                                  (Do Ret {returnOperand = Just (LocalReference $ Name "retval"), metadata'=meta0})] }
+                        G.basicBlocks = [ BasicBlock (Name "begin") 
+                                                  (getInsts (Name "r") 0 ex)
+                                                  (Do Ret {returnOperand = Just (LocalReference $ Name "r"), metadata'=meta0})] }
 
 dumpLLVMAsm :: LLVM.General.AST.Module -> IO ()
 dumpLLVMAsm mymod = do
