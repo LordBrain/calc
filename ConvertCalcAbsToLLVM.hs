@@ -106,10 +106,10 @@ getInsts retname num ex@(EAdd arg1      (EInt x2) ) = getInsts (UnName num) (num
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
-getInsts (Name n) num ex@(EAdd arg1      arg2 ) = getInsts (Name (n ++ show num)) (num+1) arg1 ++ getInsts (Name (n ++ show (num+1))) (num+2) arg2 ++
+getInsts (Name n) num ex@(EAdd arg1      arg2 ) = getInsts (Name (n ++ "0")) (num+1) arg1 ++ getInsts (Name (n ++ "1")) (num+2) arg2 ++
                                   [ Name n := getBinOpInstruction ex (getNumT ex) 
-                                                     (LocalReference (Name (n ++ show num))) 
-                                                     (LocalReference (Name (n ++ show (num+1)))) 
+                                                     (LocalReference (Name (n ++ "0"))) 
+                                                     (LocalReference (Name (n ++ "1"))) 
                                                      meta0
                                   ]
 getInsts (UnName n) num ex@(EAdd arg1      arg2 ) = getInsts (UnName (n + 1)) (num+1) arg1 ++ getInsts (UnName (n + 2)) (num+2) arg2 ++
@@ -155,10 +155,10 @@ getInsts retname num ex@(ESub arg1      (EInt x2) ) = getInsts (UnName num) (num
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
-getInsts (Name n) num ex@(ESub arg1      arg2 ) = getInsts (Name (n ++ show num)) (num+1) arg1 ++ getInsts (Name (n ++ show (num+1))) (num+2) arg2 ++
+getInsts (Name n) num ex@(ESub arg1      arg2 ) = getInsts (Name (n ++ "0")) (num+1) arg1 ++ getInsts (Name (n ++ "1")) (num+2) arg2 ++
                                   [ Name n := getBinOpInstruction ex (getNumT ex) 
-                                                     (LocalReference (Name (n ++ show num))) 
-                                                     (LocalReference (Name (n ++ show (num+1)))) 
+                                                     (LocalReference (Name (n ++ "0"))) 
+                                                     (LocalReference (Name (n ++ "1"))) 
                                                      meta0
                                   ]
 getInsts (UnName n) num ex@(ESub arg1      arg2 ) = getInsts (UnName (n + 1)) (num+1) arg1 ++ getInsts (UnName (n + 2)) (num+2) arg2 ++
@@ -205,10 +205,10 @@ getInsts retname num ex@(EMul arg1      (EInt x2) ) = getInsts (UnName num) (num
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
-getInsts (Name n) num ex@(EMul arg1      arg2 ) = getInsts (Name (n ++ show num)) (num+1) arg1 ++ getInsts (Name (n ++ show (num+1))) (num+2) arg2 ++
+getInsts (Name n) num ex@(EMul arg1      arg2 ) = getInsts (Name (n ++ "0")) (num+1) arg1 ++ getInsts (Name (n ++ "1")) (num+2) arg2 ++
                                   [ Name n := getBinOpInstruction ex (getNumT ex) 
-                                                     (LocalReference (Name (n ++ show num))) 
-                                                     (LocalReference (Name (n ++ show (num+1)))) 
+                                                     (LocalReference (Name (n ++ "0"))) 
+                                                     (LocalReference (Name (n ++ "1"))) 
                                                      meta0
                                   ]
 getInsts (UnName n) num ex@(EMul arg1      arg2 ) = getInsts (UnName (n + 1)) (num+1) arg1 ++ getInsts (UnName (n + 2)) (num+2) arg2 ++
@@ -270,10 +270,10 @@ getInsts retname _ ex@(EDiv      (EInt x1)      (EInt x2)) =
                                                      meta0
                                   ]
 -}
-getInsts (Name n) num ex@(EDiv arg1      arg2 ) = getInsts (Name (n ++ show num)) (num+1) arg1 ++ getInsts (Name (n ++ show (num+1))) (num+2) arg2 ++
+getInsts (Name n) num ex@(EDiv arg1      arg2 ) = getInsts (Name (n ++ "0")) (num+1) arg1 ++ getInsts (Name (n ++ "1")) (num+2) arg2 ++
                                   [ Name n := getBinOpInstruction ex (getNumT ex) 
-                                                     (LocalReference (Name (n ++ show num))) 
-                                                     (LocalReference (Name (n ++ show (num+1)))) 
+                                                     (LocalReference (Name (n ++ "0"))) 
+                                                     (LocalReference (Name (n ++ "1"))) 
                                                      meta0
                                   ]
 getInsts (UnName n) num ex@(EDiv arg1      arg2 ) = getInsts (UnName (n + 1)) (num+1) arg1 ++ getInsts (UnName (n + 2)) (num+2) arg2 ++
@@ -316,12 +316,12 @@ main  = do
         eestr = "((a / 2) + 1/b)/c + 3*b"
         dd' = getInsts (Name "dd") 0 dd
         ddTop = getModule [dd]
+    putStrLn $ "cc = " ++ "x + y"
     print $ getInsts (Name "cc") 0 e
-    putStrLn " ---------- "
-    putStrLn str
     putStrLn " ---------- "
     mapM_ print  dd'
     putStrLn " ---------- "
+    putStrLn $ "dd = " ++ str
     dumpLLVMAsm ddTop
     putStrLn " ---------- "
     putStrLn $ "ee = " ++ eestr
