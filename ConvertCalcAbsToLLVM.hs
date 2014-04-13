@@ -10,6 +10,7 @@ import qualified LLVM.General.AST.Global as G
 import qualified LLVM.General.AST.Float as Fl
 import qualified LLVM.General.AST.Constant as C
 import Control.Monad.Trans.Error
+import ErrM
 
 
 lowestRankNumT :: Type
@@ -66,22 +67,49 @@ getParms (EDiv arg1 arg2) _    = binOpParams arg1 arg2 highestRankNumT
 getParms (EVar (Ident x)) numT = [Parameter numT (Name x) []]
 getParms (EInt _) _= []
 
-getInsts retname exp@(EAdd arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
+getInsts retname _ exp@(EAdd arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
                                   [ Name retname := getBinOpInstruction exp (getNumT exp) 
                                                      (LocalReference (Name x1)) 
                                                      (LocalReference (Name x2)) 
                                                      meta0
                                   ]
-getInsts retname exp@(EAdd arg1@(EVar (Ident x1)) arg2@(EInt x2)) =
+getInsts retname _ exp@(EAdd arg1@(EVar (Ident x1)) arg2@(EInt x2)) =
                                   [ Name retname := getBinOpInstruction exp (getNumT exp) 
                                                      (LocalReference (Name x1)) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
                                                      meta0
                                   ]
+getInsts retname _ exp@(EAdd arg1@(EInt x2) arg2@(EVar (Ident x1)) ) =
+                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num exp@(EAdd arg1@(EInt x1) arg2 ) = getInsts ("tmp" ++ show num) (num+1) arg2 ++
+                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
+                                                     (LocalReference (Name $ "tmp" ++ show num)) 
+                                                     meta0
+                                  ]
+getInsts retname num exp@(EAdd arg1 arg2@(EInt x2) ) = getInsts ("tmp" ++ show num) (num+1) arg1 ++
+                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (Name $ "tmp" ++ show num)) 
+                                                     meta0
+                                  ]
 main :: IO ()
 main  = do 
-    print $ getInsts "aa" (EAdd (EVar (Ident "y")) (EInt 2))
-    print $ getInsts "bb" (EAdd (EVar (Ident "y")) (EVar (Ident "z")))
+    print $ getInsts "aa" 0 (EAdd (EVar (Ident "y")) (EInt 2))
+    print $ getInsts "bb" 0 (EAdd (EVar (Ident "y")) (EVar (Ident "z")))
+    let Ok e = pExp $ myLexer "x + y"
+        Ok e2= pExp $ myLexer "z + 4"
+        Ok e3= pExp $ myLexer str
+        str = "(2 + (4 + z)) + 3"
+    print $ getInsts "cc" 0 e
+    putStrLn " ---------- "
+    putStrLn str
+    putStrLn " ---------- "
+    mapM_ print $ getInsts "dd" 0 e3
 
 getModule :: [Exp] -> LLVM.General.AST.Module
 getModule exps = defaultModule { moduleName = "Calc Module", moduleDefinitions = map (GlobalDefinition . getTopLvl) exps}
@@ -99,7 +127,7 @@ getModule exps = defaultModule { moduleName = "Calc Module", moduleDefinitions =
                         G.name = Name "func_name",
                         --G.parameters = (getParms exp, False), --[paramT x1, paramT x2], False),
                         G.basicBlocks = [ BasicBlock (Name "my_add") 
-                                                  (getInsts "retval" exp)
+                                                  (getInsts "retval" 0 exp)
                                                   (Do Ret {returnOperand = Just (LocalReference $ Name "retval"), metadata'=meta0})] }
 
 dumpLLVMAsm :: LLVM.General.AST.Module -> IO ()

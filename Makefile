@@ -1,4 +1,7 @@
-all: Testcalc Doccalc.ps
+all: Testcalc Doccalc.ps ConvertCalcAbsToLLVM
+
+ConvertCalcAbsToLLVM: ConvertCalcAbsToLLVM.hs
+	ghc -main-is ConvertCalcAbsToLLVM ConvertCalcAbsToLLVM.hs
 
 Testcalc: Testcalc.hs Parcalc.hs Lexcalc.hs
 	ghc --make Testcalc.hs -o Testcalc
