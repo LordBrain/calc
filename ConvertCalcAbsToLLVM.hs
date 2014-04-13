@@ -26,6 +26,7 @@ highestRankNumT = FloatingPointType 64 IEEE  --- Floats
 
 getNumT :: Exp -> Type
 getNumT (EInt _) = lowestRankNumT
+getNumT (EFlo _) = highestRankNumT
 getNumT (EDiv _ _) = highestRankNumT
 getNumT (EAdd x y) = promoteNumType (getNumT x) (getNumT y)
 getNumT (ESub x y) = promoteNumType (getNumT x) (getNumT y)
@@ -75,6 +76,7 @@ getParms ex ty = nub $ getParms_ ex ty
         getParms_ (EDiv arg1 arg2) _    = binOpParams arg1 arg2 highestRankNumT
         getParms_ (EVar (Ident x)) numT = [Parameter numT (Name x) []]
         getParms_ (EInt _) _= []
+        getParms_ (EFlo _) _= []
 
 
 getInsts :: Name -> Word -> Exp -> [Named Instruction]
@@ -106,6 +108,30 @@ getInsts retname num ex@(EAdd      (EInt x1) arg2 ) = getInsts (UnName num) (num
 getInsts retname num ex@(EAdd arg1      (EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EAdd      (EVar (Ident x1))      (EFlo x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EAdd      (EFlo x2)      (EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EAdd      (EFlo x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x1)) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EAdd arg1      (EFlo x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
@@ -158,6 +184,30 @@ getInsts retname num ex@(ESub arg1      (EInt x2) ) = getInsts (UnName num) (num
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
+getInsts retname _ ex@(ESub      (EVar (Ident x1))      (EFlo x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(ESub      (EFlo x2)      (EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(ESub      (EFlo x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x1)) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(ESub arg1      (EFlo x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
 getInsts (Name n) num ex@(ESub arg1      arg2 ) = getInsts (Name (n ++ "0")) (num+1) arg1 ++ getInsts (Name (n ++ "1")) (num+2) arg2 ++
                                   [ Name n := getBinOpInstruction ex (getNumT ex) 
                                                      (LocalReference (Name (n ++ "0"))) 
@@ -205,6 +255,30 @@ getInsts retname num ex@(EMul      (EInt x1) arg2 ) = getInsts (UnName num) (num
 getInsts retname num ex@(EMul arg1      (EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EMul      (EVar (Ident x1))      (EFlo x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EMul      (EFlo x2)      (EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EMul      (EFlo x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x1)) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EMul arg1      (EFlo x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
@@ -265,6 +339,30 @@ getInsts retname num ex@(EDiv arg1      (EInt x2) ) = getInsts (UnName num) (num
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
+getInsts retname _ ex@(EDiv      (EVar (Ident x1))      (EFlo x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EDiv      (EFlo x2)      (EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EDiv      (EFlo x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x1)) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EDiv arg1      (EFlo x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x2)) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
 {-
 getInsts retname _ ex@(EDiv      (EInt x1)      (EInt x2)) =
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
@@ -273,6 +371,8 @@ getInsts retname _ ex@(EDiv      (EInt x1)      (EInt x2)) =
                                                      meta0
                                   ]
 -}
+
+------------------- Combos
 getInsts (Name n) num ex@(EDiv arg1      arg2 ) = getInsts (Name (n ++ "0")) (num+1) arg1 ++ getInsts (Name (n ++ "1")) (num+2) arg2 ++
                                   [ Name n := getBinOpInstruction ex (getNumT ex) 
                                                      (LocalReference (Name (n ++ "0"))) 
@@ -298,6 +398,12 @@ getInsts retname _ ex@(EVar (Ident x)) =
 getInsts retname _ ex@(EInt x) = 
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x))) 
+                                                     (ConstantOperand (C.Float $ Fl.Double 0)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EFlo x) = 
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double x)) 
                                                      (ConstantOperand (C.Float $ Fl.Double 0)) 
                                                      meta0
                                   ]
