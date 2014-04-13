@@ -6,7 +6,7 @@ module PromoteNum where
 import Abscalc
 -- import Data.Traversable
 
-data NumT = IntT | FloT deriving (Eq, Ord, Show)
+data NumT = IntT | FloT | Unknown deriving (Eq, Ord, Show)
 
 -- deriving instance Traversable Exp
 
@@ -16,8 +16,12 @@ numtype (EInt _) = IntT
 numtype (EAdd (numtype -> IntT) (numtype -> IntT)) = IntT
 numtype (ESub (numtype -> IntT) (numtype -> IntT)) = IntT
 numtype (EMul (numtype -> IntT) (numtype -> IntT)) = IntT
-numtype (EMul (numtype -> IntT) (numtype -> IntT)) = IntT
-numtype _ = FloT
+numtype (EAdd _ _) = FloT
+numtype (ESub _ _) = FloT
+numtype (EMul _ _) = FloT
+numtype (EDiv _ _) = FloT
+numtype (EVar _) = Unknown -- don't trigger promotion
+numtype (EFlo _) = FloT 
 
 
 promoteNum :: Exp -> Exp

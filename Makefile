@@ -1,6 +1,6 @@
 all: Testcalc Doccalc.ps ConvertCalcAbsToLLVM
 
-ConvertCalcAbsToLLVM: ConvertCalcAbsToLLVM.hs Abscalc.hs
+ConvertCalcAbsToLLVM: ConvertCalcAbsToLLVM.hs Abscalc.hs PromoteNum.hs Abscalc.hs
 	ghc -main-is ConvertCalcAbsToLLVM ConvertCalcAbsToLLVM.hs
 
 Testcalc: Testcalc.hs Parcalc.hs Lexcalc.hs

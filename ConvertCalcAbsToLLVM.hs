@@ -15,7 +15,7 @@ import Control.Monad.Trans.Error
 import Data.List
 import Data.Word
 import Debug.Trace
-
+import PromoteNum (promoteNum)
 
 
 lowestRankNumT :: Type
@@ -90,24 +90,24 @@ getInsts retname _ ex@(EAdd      (EVar (Ident x1))      (EVar (Ident x2))) =
 getInsts retname _ ex@(EAdd      (EVar (Ident x1))      (EInt x2)) =
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (LocalReference (Name x1)) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      meta0
                                   ]
 getInsts retname _ ex@(EAdd      (EInt x2)      (EVar (Ident x1)) ) =
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      (LocalReference (Name x1)) 
                                                      meta0
                                   ]
 getInsts retname num ex@(EAdd      (EInt x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x1})) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
 getInsts retname num ex@(EAdd arg1      (EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
@@ -163,24 +163,24 @@ getInsts retname _ ex@(ESub      (EVar (Ident x1))      (EVar (Ident x2))) =
 getInsts retname _ ex@(ESub      (EVar (Ident x1))      (EInt x2)) =
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (LocalReference (Name x1)) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      meta0
                                   ]
 getInsts retname _ ex@(ESub      (EInt x2)      (EVar (Ident x1)) ) =
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      (LocalReference (Name x1)) 
                                                      meta0
                                   ]
 getInsts retname num ex@(ESub      (EInt x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x1})) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
 getInsts retname num ex@(ESub arg1      (EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
@@ -237,24 +237,24 @@ getInsts retname _ ex@(EMul      (EVar (Ident x1))      (EVar (Ident x2))) =
 getInsts retname _ ex@(EMul      (EVar (Ident x1))      (EInt x2)) =
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (LocalReference (Name x1)) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      meta0
                                   ]
 getInsts retname _ ex@(EMul      (EInt x2)      (EVar (Ident x1)) ) =
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      (LocalReference (Name x1)) 
                                                      meta0
                                   ]
 getInsts retname num ex@(EMul      (EInt x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x1})) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
 getInsts retname num ex@(EMul arg1      (EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
                                   [ retname := getBinOpInstruction ex (getNumT ex) 
-                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (ConstantOperand (C.Int {C.integerBits = 32, C.integerValue = x2})) 
                                                      (LocalReference (UnName num)) 
                                                      meta0
                                   ]
@@ -441,7 +441,7 @@ main  = do
     mapM_ (dumpLLVMAsm . f . pExp . myLexer) (lines x)
 
 getModule :: [Exp] -> LLVM.General.AST.Module
-getModule exps = defaultModule { moduleName = "Calc Module", moduleDefinitions = map (GlobalDefinition . getTopLvl) exps}
+getModule exps = defaultModule { moduleName = "Calc Module", moduleDefinitions = map (GlobalDefinition . getTopLvl) (map promoteNum exps)}
     where
         getTopLvl :: Exp -> Global 
         getTopLvl ex = let numT = getNumT ex in
