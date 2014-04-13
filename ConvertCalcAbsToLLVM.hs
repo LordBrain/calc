@@ -330,7 +330,9 @@ main  = do
     putStrLn $ "ee = " ++ eestr
     dumpLLVMAsm (getModule [ee])
     x <- getContents
-    mapM_ (dumpLLVMAsm . (\(Ok y) -> getModule [y]) . pExp . myLexer) (lines x)
+    let f (Ok y) = getModule [y]
+        f (Bad s) = defaultModule { moduleName = "Bad: " ++ s, moduleDefinitions = []}
+    mapM_ (dumpLLVMAsm . f . pExp . myLexer) (lines x)
 
 getModule :: [Exp] -> LLVM.General.AST.Module
 getModule exps = defaultModule { moduleName = "Calc Module", moduleDefinitions = map (GlobalDefinition . getTopLvl) exps}
