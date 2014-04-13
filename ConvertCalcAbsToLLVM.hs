@@ -19,7 +19,7 @@ import PromoteNum (promoteNum)
 
 
 lowestRankNumT :: Type
-lowestRankNumT = FloatingPointType 64 IEEE   --- Integers
+lowestRankNumT = IntegerType {typeBits = 32 } -- FloatingPointType 64 IEEE   --- Integers
 
 highestRankNumT :: Type
 highestRankNumT = FloatingPointType 64 IEEE  --- Floats
@@ -423,7 +423,7 @@ main  = do
         Ok ee= pExp $ myLexer eestr
         str = "((2 + (4 * z)) + 3)/7"
         eestr = "((a / 2) + 1/b)/c + 3*b"
-        dd' = getInsts (Name "dd") 0 dd
+        dd' = getInsts (Name "dd") 0 (promoteNum dd)
         ddTop = getModule [dd]
     putStrLn $ "cc = " ++ "x + y"
     print $ getInsts (Name "cc") 0 e
@@ -434,7 +434,7 @@ main  = do
     dumpLLVMAsm ddTop
     putStrLn " ---------- "
     putStrLn $ "ee = " ++ eestr
-    dumpLLVMAsm (getModule [ee])
+    dumpLLVMAsm (getModule [promoteNum ee])
     x <- getContents
     let f (Ok y) = getModule [y]
         f (Bad s) = defaultModule { moduleName = "Bad: " ++ s, moduleDefinitions = []}

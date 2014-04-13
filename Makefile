@@ -5,6 +5,8 @@ ConvertCalcAbsToLLVM: ConvertCalcAbsToLLVM.hs Abscalc.hs PromoteNum.hs Abscalc.h
 
 Testcalc: Testcalc.hs Parcalc.hs Lexcalc.hs
 	ghc --make Testcalc.hs -o Testcalc
+TestPromote: TestPromote.hs Parcalc.hs Lexcalc.hs
+	ghc --make TestPromote.hs -o Testcalc
 
 Parcalc.hs: Parcalc.y
 	happy -gca Parcalc.y
@@ -21,8 +23,10 @@ Doccalc.ps: Doccalc.dvi
 clean:
 	-rm -f *.log *.aux *.hi *.o *.dvi
 	-rm -f Doccalc.ps
+	-rm ConvertCalcAbsToLLVM
 distclean: clean
 	-rm -f Doccalc.* Lexcalc.* Parcalc.* Layoutcalc.* Skelcalc.* Printcalc.* Testcalc.* Abscalc.* Testcalc ErrM.* SharedString.* calc.dtd XMLcalc.* 
+	-rm ConvertCalcAbsToLLVM
 
 Abscalc.hs: bnf
 Doccalc.tex: bnf
