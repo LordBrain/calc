@@ -67,67 +67,156 @@ getParms (EDiv arg1 arg2) _    = binOpParams arg1 arg2 highestRankNumT
 getParms (EVar (Ident x)) numT = [Parameter numT (Name x) []]
 getParms (EInt _) _= []
 
-getInsts retname _ exp@(EAdd arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
-                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+----------- EAdd
+getInsts retname _ ex@(EAdd arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (LocalReference (Name x1)) 
                                                      (LocalReference (Name x2)) 
                                                      meta0
                                   ]
-getInsts retname _ exp@(EAdd arg1@(EVar (Ident x1)) arg2@(EInt x2)) =
-                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+getInsts retname _ ex@(EAdd arg1@(EVar (Ident x1)) arg2@(EInt x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (LocalReference (Name x1)) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
                                                      meta0
                                   ]
-getInsts retname _ exp@(EAdd arg1@(EInt x2) arg2@(EVar (Ident x1)) ) =
-                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+getInsts retname _ ex@(EAdd arg1@(EInt x2) arg2@(EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
                                                      (LocalReference (Name x1)) 
                                                      meta0
                                   ]
-getInsts retname num exp@(EAdd arg1@(EInt x1) arg2 ) = getInsts ("tmp" ++ show num) (num+1) arg2 ++
-                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+getInsts retname num ex@(EAdd arg1@(EInt x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
-                                                     (LocalReference (Name $ "tmp" ++ show num)) 
+                                                     (LocalReference (UnName num)) 
                                                      meta0
                                   ]
-getInsts retname num exp@(EAdd arg1 arg2@(EInt x2) ) = getInsts ("tmp" ++ show num) (num+1) arg1 ++
-                                  [ Name retname := getBinOpInstruction exp (getNumT exp) 
+getInsts retname num ex@(EAdd arg1 arg2@(EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
                                                      (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
-                                                     (LocalReference (Name $ "tmp" ++ show num)) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+----------- ESub
+getInsts retname _ ex@(ESub arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (LocalReference (Name x2)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(ESub arg1@(EVar (Ident x1)) arg2@(EInt x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(ESub arg1@(EInt x2) arg2@(EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(ESub arg1@(EInt x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(ESub arg1 arg2@(EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+----------- EMul
+getInsts retname _ ex@(EMul arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (LocalReference (Name x2)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EMul arg1@(EVar (Ident x1)) arg2@(EInt x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EMul arg1@(EInt x2) arg2@(EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EMul arg1@(EInt x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EMul arg1 arg2@(EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+----------- EDiv
+getInsts retname _ ex@(EDiv arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (LocalReference (Name x2)) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EDiv arg1@(EVar (Ident x1)) arg2@(EInt x2)) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (LocalReference (Name x1)) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     meta0
+                                  ]
+getInsts retname _ ex@(EDiv arg1@(EInt x2) arg2@(EVar (Ident x1)) ) =
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (Name x1)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EDiv arg1@(EInt x1) arg2 ) = getInsts (UnName num) (num+1) arg2 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x1))) 
+                                                     (LocalReference (UnName num)) 
+                                                     meta0
+                                  ]
+getInsts retname num ex@(EDiv arg1 arg2@(EInt x2) ) = getInsts (UnName num) (num+1) arg1 ++
+                                  [ retname := getBinOpInstruction ex (getNumT ex) 
+                                                     (ConstantOperand (C.Float $ Fl.Double (fromIntegral x2))) 
+                                                     (LocalReference (UnName num)) 
                                                      meta0
                                   ]
 main :: IO ()
 main  = do 
-    print $ getInsts "aa" 0 (EAdd (EVar (Ident "y")) (EInt 2))
-    print $ getInsts "bb" 0 (EAdd (EVar (Ident "y")) (EVar (Ident "z")))
     let Ok e = pExp $ myLexer "x + y"
-        Ok e2= pExp $ myLexer "z + 4"
-        Ok e3= pExp $ myLexer str
-        str = "(2 + (4 + z)) + 3"
-    print $ getInsts "cc" 0 e
+        Ok dd= pExp $ myLexer str
+        str = "((2 + (4 * z)) + 3)/7"
+        dd' = getInsts (Name "dd") 0 dd
+        ddTop = getModule [dd]
+    print $ getInsts (Name "cc") 0 e
     putStrLn " ---------- "
     putStrLn str
     putStrLn " ---------- "
-    mapM_ print $ getInsts "dd" 0 e3
+    mapM_ print $ dd'
+    putStrLn " ---------- "
+    dumpLLVMAsm ddTop
 
 getModule :: [Exp] -> LLVM.General.AST.Module
 getModule exps = defaultModule { moduleName = "Calc Module", moduleDefinitions = map (GlobalDefinition . getTopLvl) exps}
     where
-
-        -- paramT name numContext = Parameter numContext (Name name) []
-
         getTopLvl :: Exp -> Global 
-        getTopLvl exp@(EAdd arg1@(EVar (Ident x1)) arg2@(EVar (Ident x2))) =
-            let 
-                numT = getNumT exp
-                paramT name = Parameter numT (Name name) [] in
+        getTopLvl ex = let numT = getNumT ex in
                     functionDefaults {
                         G.returnType = numT,
                         G.name = Name "func_name",
-                        --G.parameters = (getParms exp, False), --[paramT x1, paramT x2], False),
+                        G.parameters = (getParms ex numT, False),
                         G.basicBlocks = [ BasicBlock (Name "my_add") 
-                                                  (getInsts "retval" 0 exp)
+                                                  (getInsts (Name "retval") 0 ex)
                                                   (Do Ret {returnOperand = Just (LocalReference $ Name "retval"), metadata'=meta0})] }
 
 dumpLLVMAsm :: LLVM.General.AST.Module -> IO ()
