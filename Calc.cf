@@ -1,3 +1,4 @@
+    EPos. Exp  ::= Pos Integer Typ Exp ;
     EAs.  Exp  ::= Typ Exp ;
     EAdd. Exp  ::= Exp  "+" Exp1 ;
     ESub. Exp  ::= Exp  "-" Exp1 ;
@@ -9,6 +10,10 @@
   
     coercions Exp 2 ;
 
+    TUnk. Typ ::= "unk" ;
     TI32. Typ ::= "i32" ;
     TFlo. Typ ::= "dbl" ;
-    TUnk. Typ ::= "unk" ;
+    
+    PLin. Pos ::= "set-line" ;
+    PCol. Pos ::= "set-column" ;
+    PUnk. Pos ::= "no-position" ;
