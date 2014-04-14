@@ -1,44 +1,47 @@
-all: Testcalc Doccalc.ps ConvertCalcAbsToLLVM
+all: Lang/TestCalc Calc.ps Lang/ConvertCalcAbsToLLVM
 
-ConvertCalcAbsToLLVM: ConvertCalcAbsToLLVM.hs Abscalc.hs PromoteNum.hs Abscalc.hs
-	ghc -main-is ConvertCalcAbsToLLVM ConvertCalcAbsToLLVM.hs
+Lang/ConvertCalcAbsToLLVM: Lang/ConvertCalcAbsToLLVM.hs Lang/AbsCalc.hs Lang/PromoteNum.hs Lang/AbsCalc.hs
+	ghc -main-is Lang/ConvertCalcAbsToLLVM Lang/ConvertCalcAbsToLLVM.hs
 
-Testcalc: Testcalc.hs Parcalc.hs Lexcalc.hs
-	ghc --make Testcalc.hs -o Testcalc
-TestPromote: TestPromote.hs Parcalc.hs Lexcalc.hs
-	ghc --make TestPromote.hs -o Testcalc
+Lang/TestCalc: Lang/TestCalc.hs Lang/ParCalc.hs Lang/LexCalc.hs
+	ghc --make Lang/TestCalc.hs -o Lang/TestCalc
+Lang/TestPromote: Lang/TestPromote.hs Lang/ParCalc.hs Lang/LexCalc.hs
+	ghc --make Lang/TestPromote.hs -o Lang/TestCalc
 
-Parcalc.hs: Parcalc.y
-	happy -gca Parcalc.y
+Lang/ParCalc.hs: Lang/ParCalc.y
+	happy -gca Lang/ParCalc.y
 	
-Lexcalc.hs: Lexcalc.x
-	alex -g Lexcalc.x
+Lang/LexCalc.hs: Lang/LexCalc.x
+	alex -g Lang/LexCalc.x
 
-Doccalc.dvi: Doccalc.tex
-	latex Doccalc.tex
+Calc.dvi: Calc.tex
+	latex Calc.tex
 
-Doccalc.ps: Doccalc.dvi
-	dvips Doccalc.dvi -o Doccalc.ps
+Calc.ps: Calc.dvi
+	dvips Calc.dvi -o Calc.ps
 
 clean:
 	-rm -f *.log *.aux *.hi *.o *.dvi
-	-rm -f Doccalc.ps
-	-rm ConvertCalcAbsToLLVM
+	-rm -f Lang/*.log Lang/*.aux Lang/*.hi Lang/*.o Lang/*.dvi
+	-rm -f Calc.ps
+	-rm -f Lang/ConvertCalcAbsToLLVM
+
 distclean: clean
-	-rm -f Doccalc.* Lexcalc.* Parcalc.* Layoutcalc.* Skelcalc.* Printcalc.* Testcalc.* Abscalc.* Testcalc ErrM.* SharedString.* calc.dtd XMLcalc.* 
-	-rm ConvertCalcAbsToLLVM
+	-rm -f Lang/Calc.* Lang/LexCalc.* Lang/ParCalc.* Lang/LayoutCalc.* Lang/SkelCalc.* Lang/PrintCalc.* Lang/TestCalc.* Lang/AbsCalc.* Lang/TestCalc Lang/ErrM.* Lang/SharedString.* Lang/Calc.dtd Lang/XMLCalc.* 
+	-rm -f Lang/ConvertCalcAbsToLLVM
 
-Abscalc.hs: bnf
-Doccalc.tex: bnf
-Doccalc.txt: bnf
-ErrM.hs: bnf
-Lexcalc.x: bnf
-Parcalc.y: bnf
-Printcalc.hs: bnf
-Skelcalc.hs: bnf
-Testcalc.hs: bnf
+Lang/AbsCalc.hs: bnf
+Calc.tex: bnf
+Lang/Calc.txt: bnf
+Lang/ErrM.hs: bnf
+Lang/LexCalc.x: bnf
+Lang/ParCalc.y: bnf
+Lang/PrintCalc.hs: bnf
+Lang/SkelCalc.hs: bnf
+Lang/TestCalc.hs: bnf
 
-bnf: calc.cf
-	bnfc -haskell calc.cf
+bnf: Calc.cf
+	bnfc --haskell --ghc -p Lang Calc.cf
+	bnfc --latex Calc.cf
 
 .PHONY: bnf clean all

@@ -1,3 +1,4 @@
+    EAs.  Exp  ::= Typ Exp ;
     EAdd. Exp  ::= Exp  "+" Exp1 ;
     ESub. Exp  ::= Exp  "-" Exp1 ;
     EMul. Exp1 ::= Exp1 "*" Exp2 ;
@@ -7,3 +8,7 @@
     EVar. Exp2 ::= Ident ;
   
     coercions Exp 2 ;
+
+    TI32. Typ ::= "i32" ;
+    TFlo. Typ ::= "dbl" ;
+    TUnk. Typ ::= "unk" ;

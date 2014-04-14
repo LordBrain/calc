@@ -1,9 +1,9 @@
 {-# LANGUAGE ViewPatterns #-}
 -- {-# LANGUAGE StandaloneDeriving #-}
 -- {-# LANGUAGE DeriveTraversable #-}
-module PromoteNum where
+module Lang.PromoteNum where
 
-import qualified Abscalc as A
+import qualified Lang.AbsCalc as A
 -- import Data.Traversable
 import Debug.Trace
 
