@@ -5,7 +5,6 @@ import Lang.AbsCalc
 import Lang.ErrM
 import LLVM.General.AST
 import LLVM.General.AST.Instruction
---import LLVM.General.AST.Instruction ((:=))
 import LLVM.General.Module
 import LLVM.General.Context
 import qualified LLVM.General.AST.Global as G
@@ -19,33 +18,34 @@ type Result = Err [Named Instruction]
 -- | updateNames
 --
 --   updateNames iterates over the list of instructions
---   adding a specified amount to all of the unnames.
+--   adding a specified amount to each n of an (UnName n). 
 --   Also any conflicts with rName are remedied and the
 --   final instruction is named rName
 --
---      rName      -    requested name of final instruction
---      unNameOffset -    Highest used digit for unnamed instructions
---      ins        -    List of instructions to update
+--      rName        -    requested name of final instruction
+--      unNameOffset -    highest used digit for unnamed instructions
+--                        (or the amount to add to n)
+--      ins          -    List of instructions to update
+--
+{-# ANN updateNames "HLint: ignore Eta reduce" #-}
 updateNames :: Name -> Word -> [Named Instruction] -> [Named Instruction] 
-updateNames rName@(Name s) unNameOffset ins = update' ins 
+updateNames rName unNameOffset ins = update' ins 
    where
-       update' [ _ := inst ] = [ rName := updateOperands inst] -- singleton list
-       update' ((UnName n) := i :xs) = (UnName (n+unNameOffset) := updateOperands i):update' xs
-       update' ((UnName n) := i :xs) = (UnName (n+unNameOffset) := updateOperands i):update' xs
-       update' ((x := i):ins) | x == rName = (Name (s ++"0") := updateOperands i):update' ins
-       update' x = x
+       update' [ _ := instruction ] = [ rName := updateOperands instruction ] -- singleton list
+       update' ((x := i):is)  = (updateName x := updateOperands i):update' is
+
+       updateName :: Name -> Name
+       updateName x@(Name s) | x <- rName = Name (s ++ "0")
+       updateName (UnName n)  = UnName (n + unNameOffset)
 
        updateOperands = updateOperand1 . updateOperand0
-       updateOperand0 inst | (LocalReference (UnName n)) <- operand0 inst 
-            = inst { operand0=LocalReference (UnName (n+unNameOffset))}
-       updateOperand0 inst | (LocalReference x) <- operand0 inst, x == rName
-            = inst { operand0=LocalReference (Name (s ++ "0"))}
+
+       updateOperand0 inst | LocalReference x  <- operand0 inst 
+            = inst { operand0=LocalReference (updateName x) }
        updateOperand0 inst = inst
 
-       updateOperand1 inst | (LocalReference (UnName n)) <- operand1 inst 
-            = inst { operand1=LocalReference (UnName (n+unNameOffset))}
-       updateOperand1 inst | (LocalReference x) <- operand1 inst, x == rName
-            = inst { operand1=LocalReference (Name (s ++ "0"))}
+       updateOperand1 inst | (LocalReference x) <- operand1 inst
+            = inst { operand1=LocalReference (updateName x) }
        updateOperand1 inst = inst
 
 
