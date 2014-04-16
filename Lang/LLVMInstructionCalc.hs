@@ -33,6 +33,7 @@ type Result = Err [Named Instruction]
 --
 {-# ANN updateNames "HLint: ignore Eta reduce" #-}
 updateNames :: Name -> Word -> [Named Instruction] -> [Named Instruction] 
+updateNames rName unNameOffset [] = []
 updateNames rName unNameOffset ins = update' ins 
    where
        update' [ _ := instruction ] = [ appropriate rName := updateOperands instruction ] -- singleton list
@@ -42,10 +43,10 @@ updateNames rName unNameOffset ins = update' ins
        -- if rName is an UnName then ignore it
        appropriate x | UnName _ <- rName = updateName x
        appropriate x@(UnName n) = updateName x -- UnName (n+unNameOffset)
-       appropriate _ = rName
+       appropriate x = rName
 
        updateName :: Name -> Name
-       updateName x@(Name s) | x <- rName = Name (s ++ "0")
+       updateName x@(Name s) = if rName == x then Name (s ++ "0") else x
        updateName (UnName n)  = UnName (n + unNameOffset)
 
        updateOperands = updateOperand1 . updateOperand0
@@ -91,13 +92,17 @@ getBinOpInstruction x = case (getTyp x, getBinOP x) of
     -- Using Add 0 for storing Terminals as instructions
     (TI32,BNone) -> Add False False
     (TFlo,BNone) -> FAdd
+    (_,_ ) -> FAdd
     
 zeroConstant TI32 = ConstantOperand (C.Int 32 0)
 zeroConstant  _   = ConstantOperand (C.Float $ Fl.Double 0)
 
 getTerminal :: Exp -> Err Operand
 getTerminal (EPos _ _ typ x) = getTerminal (EAs typ x)
+getTerminal (EAs TFlo (EInt n) ) = getTerminal (EFlo (fromIntegral n))
 getTerminal (EAs typ x) = getTerminal x
+
+
 getTerminal (EVar (Ident x)) = return $ LocalReference (Name x)
 getTerminal (EInt n) = return $ ConstantOperand (C.Int 32 n)
 getTerminal (EFlo n) = return $ ConstantOperand (C.Float $ Fl.Double n)
@@ -122,25 +127,28 @@ getSecondParam x
  | EDiv _ exp  <- x = return exp
 getSecondParam x = error ("Could not get second parameter, syntax: " ++ show x)
 
+
 transExp :: Exp -> Result
 transExp x = case (getTyp x, getBinOP x) of
     (typ, BNone) -> getTerminal x >>= \op -> return [UnName 0 := getBinOpInstruction x op (zeroConstant typ) [] ]
     (typ, _    ) -> do
-        exp1 <- getFirstParam x
-        exp2 <- getSecondParam x
+        exp1 <- fmap (EAs typ) $ getFirstParam x
+        exp2 <- fmap (EAs typ) $ getSecondParam x
         xs <- transExp exp1
-        ys <- fmap (updateNames (UnName 0) (fromIntegral $ length xs)) (transExp exp2)
-        let x1@(UnName n1) := i1 = last xs
-            y1@(UnName n2) := i2 = last ys
-            n3 = 1 + max n1 n2
-            newname = UnName n3
+        let lastn = fromIntegral $ length xs 
+        ys <- transExp exp2 -- fmap (updateNames (UnName 0) lastn) (transExp exp2)
+        let x1 := i1 = last xs
+            y1 := i2 = last ys
+            newname = Name (tail . show $ getBinOP x) --UnName n3
+            xname = Name (tail . show $ getBinOP exp1) --UnName n3
+            yname = Name (tail . show $ getBinOP exp2) --UnName n3
             (xs',op0') = if getBinOP exp1 == BNone then ([], getTerminal exp1)
                                                    else (xs, return $ LocalReference x1)
             (ys',op1') = if getBinOP exp2 == BNone then ([],  getTerminal exp2)
                                                    else (ys, return $ LocalReference y1)
         op0 <- op0'
         op1 <- op1'
-        return $ xs ++ ys ++ [newname := getBinOpInstruction x op0 op1 []]
+        return $ updateNames xname 0 xs' ++ updateNames yname lastn ys' ++ [newname := getBinOpInstruction x op0 op1 []]
 
 
 transTyp :: Typ -> Result
